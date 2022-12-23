@@ -11,7 +11,7 @@ intents.members = True
 client = discord.Client(intents=intents)
 
 redis_url = os.environ.get('REDIS_URL')
-Token = 'MTA1NDMwMTU1MTU1ODE0NDA3MA.GKLRaV.SUc0IEogef8N-L21LDAP5NA6D4Ebp-htO6lXG4'
+Token = 'ID' 
 
 #  Создаём базу данных или загружаем готовую
 if redis_url is None:
@@ -85,7 +85,7 @@ else:
     if raw_data is None:
         print('None')
         data = {
-            "post_id": 1054381354411896872,
+            "post_id": 111222333,
 
             "roles": {
 
