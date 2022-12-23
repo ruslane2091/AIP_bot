@@ -1,5 +1,5 @@
 import unittest
-from CREED_bot import check, check_adm, number
+from Bot.py import check, check_adm, number
 
 
 class messageTest(unittest.TestCase):
