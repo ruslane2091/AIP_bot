@@ -2,7 +2,6 @@ import os
 import discord
 from discord import utils, guild
 from discord.ext import commands
-# from discord.ui import Bu
 import redis
 import json
 
@@ -12,7 +11,7 @@ intents.members = True
 client = discord.Client(intents=intents)
 
 redis_url = os.environ.get('REDIS_URL')
-Token = 'ID' #удален
+Token = 'MTA1NDMwMTU1MTU1ODE0NDA3MA.GKLRaV.SUc0IEogef8N-L21LDAP5NA6D4Ebp-htO6lXG4'
 
 #  Создаём базу данных или загружаем готовую
 if redis_url is None:
@@ -150,18 +149,35 @@ bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 
 @bot.event
 async def on_ready():
-
+    '''
+        on ready
+        Данная функция отвечает за проверку работоспособности бота
+        :return: ничего
+        '''
     print('bot connected')
 
 
-async def number(emoji):
+async def number(emoji): #при проверке
+    '''
+        number
+        Определяет индекс нужного эмоди
+        :param emoji: получает эмоджи, чтобы искать его в бд
+        :return: номер эмодзи
+        '''
     for i in range(len(data['roles'])):
 
         if emoji in data['roles'][i]:
             return i
+     #при проверке return 0
 
 
-async def check(text):
+async def check(text): #при проверке
+    '''
+       check
+       Проверяет нахождение слова в словаре запрещённых слов
+       :param text: получает сообщение
+       :return: 1 или 0. Т.е. найдено или нет
+       '''
     for i in range(len(data['twitchlist'])):
         if data['twitchlist'][i] in text.lower().replace(' ', ''):
             return 1
@@ -169,6 +185,12 @@ async def check(text):
 
 
 def check_adm(mes):
+    '''
+    check_adm
+    Проверка на то, является ли человек админом
+    :param mes: ник пользователя
+    :return: либо 0 если не админ, либо номер в админке
+    '''
     for i in range(len(data['administrators']['admins'])):
         if str(data['administrators']['admins'][i] in str(mes)):
             return i
@@ -182,6 +204,12 @@ def check_adm(mes):
 
 @bot.event
 async def on_raw_reaction_add(payload):
+    '''
+        on_raw_reaction_add
+        Слушатель событий, проверяет поставлена ли реакция на сообщение
+        :param payload:
+        :return: лишь вызывает какие-то функции
+        '''
     if payload.message_id == data['post_id']:
 
         channel = bot.get_channel(payload.channel_id)
@@ -202,6 +230,12 @@ async def on_raw_reaction_add(payload):
 
 @bot.event
 async def on_raw_reaction_remove(payload):
+    '''
+    on_raw_reaction_remove
+    Слушатель событий, определяет убрали ли реакцию
+    :param payload:
+    :return: убирает роль
+    '''
     if data['post_id'] == payload.message_id:
 
         emoji = payload.emoji.name  # эмоджи при нажатии на которое выдается роль
@@ -227,7 +261,15 @@ async def on_raw_reaction_remove(payload):
 
 @bot.command()
 async def change_post(ctx, text):
+    '''
+        change_post
+        Меняет id поста на нужное
+        :param ctx: внутренняя команда
+        :param text: текст с idшником
+        :return: меняет бд и отправляет новый пост ид
+        '''
     author = ctx.message.author
+
 
     if (str(author) in data['administrators']['admins']) or (str(author) in data['administrators']['editors']):
         data['post_id'] = int(text)
@@ -238,6 +280,12 @@ async def change_post(ctx, text):
 
 @bot.command()
 async def base_info(ctx):
+    '''
+        base_info
+        Отправляет сообщение с базовой информацией по боту
+        :param ctx: внутренняя команда
+        :return:
+        '''
     author = ctx.message.author
 
     await author.send('''Добро пожаловать в discord-канал! 
@@ -250,6 +298,12 @@ async def base_info(ctx):
 
 @bot.command()
 async def tech_info(ctx):
+    '''
+        tech_info
+        Отправляет техническую информацию о боте. То есть о его функционале и организацонные моменты
+        :param ctx:
+        :return: отправляет сообщение
+        '''
     author = ctx.message.author
 
     serv_name = ctx.message.guild.name
@@ -271,7 +325,7 @@ async def tech_info(ctx):
 Пример работы: !add_emoji 😋 11112222 (ВАЖНО: необходимы,как минимум, права редактора) 
 
 !add_banworld - Добавляет запретные слова
-Пример: !add_banworld дом (ВАЖНО: с маленькой буквы)
+Пример: !add_banworld дом (ВАЖНО: необходимо вводить слово с маленкой буквы)
 ''')
 
     print(f'Пользователь {author} получил техническую информацию о сервере')
@@ -279,6 +333,12 @@ async def tech_info(ctx):
 
 @bot.event
 async def on_member_join(member):
+    """
+       on_member_join
+       Отправляет сообщение при присоединеннии пользователя на сервер
+       :param member: ник пользователя
+       :return: отправляет сообщение
+       """
     print(f'{member} присоединился к серверу')
 
     await member.send(f'''Приветствуем {member}, на сервере. Написав команду !base_info 
@@ -286,6 +346,11 @@ async def on_member_join(member):
 
 
 async def change_data():
+    '''
+    change_data
+    Функция изменения бд
+    :return: обновляет бд
+    '''
     if redis_url is None:  # Обработка базы данных
         print('redis_url is None')
         json.dump(data,
@@ -305,6 +370,14 @@ async def change_data():
 
 @bot.command()
 async def add_emoji(ctx, emoji, text):
+    """
+        add_emoji
+        Добавляет эмоцию в базу данных
+        :param ctx:
+        :param emoji: эмодзи
+        :param text: текст сообщения
+        :return: обновляет бд, вызывает для этого функцию
+        """
     author = ctx.message.author
 
     if (str(author) in data['administrators']['admins']) or (str(author) in data['administrators']['editors']):
@@ -324,6 +397,13 @@ async def add_emoji(ctx, emoji, text):
 
 @bot.command()
 async def add_banworld(ctx, *, text):
+    """
+    add_banworld
+    Функция добавление запрещённого слова в базу данных
+    :param ctx:
+    :param text: слово
+    :return: обновляет бд
+    """
     author = ctx.message.author
 
     if (str(author) in data['administrators']['admins']) or (str(author) in data['administrators']['editors']):
@@ -341,6 +421,13 @@ async def add_banworld(ctx, *, text):
 
 @bot.command()
 async def delit_banworld(ctx, *, text):
+    '''
+    delit_banworld
+    Удаление бан слова из бд
+    :param ctx:
+    :param text: слово
+    :return: обновляет бд
+    '''
     author = ctx.message.author
 
     if (str(author) in data['administrators']['admins']) or (str(author) in data['administrators']['editors']):
@@ -361,6 +448,13 @@ async def delit_banworld(ctx, *, text):
 
 @bot.command()
 async def delit_emoji(ctx, emoji):
+    '''
+    delit_emoji
+    Удаление эмоции из бд
+    :param ctx:
+    :param emoji: эмодзи
+    :return: обновляет бд, удаляет оттуда
+    '''
     author = ctx.message.author
 
     if (str(author) in data['administrators']['admins']) or (str(author) in data['administrators']['editors']):
@@ -372,6 +466,12 @@ async def delit_emoji(ctx, emoji):
 
 @bot.command()
 async def vivod_bd(ctx):
+    """
+    vivod_bd
+    Выводит всю базу данных
+    :param ctx:
+    :return: отправляет базу данных админу
+    """
     author = ctx.message.author
     mes = ctx.message.content
     mes = str(mes).replace('!vivod_bd ', '', 1)
@@ -382,6 +482,12 @@ async def vivod_bd(ctx):
 
 @bot.command()
 async def add_admin(ctx):
+    """
+    add_admin
+    добавление пользователя в администраторы бота
+    :param ctx:
+    :return: добавляет админа
+    """
     author = ctx.message.author
     mes = ctx.message.content
     mes = str(mes).replace('!add_admin ', '', 1)
@@ -414,6 +520,12 @@ async def add_admin(ctx):
 
 @bot.command()
 async def delit_admin(ctx):
+    """
+    delit_admin
+    Удаляяет пользователя из админки бота
+    :param ctx:
+    :return: удаляет админа из бд
+    """
     author = ctx.message.author
     mes = ctx.message.content
     mes = str(mes).replace('!delit_admin ', '', 1)
@@ -468,6 +580,12 @@ async def delit_admin(ctx):
 
 @bot.event
 async def on_message(message):
+    """
+    on_message
+    Обработчик всех отправленных сообщений
+    :param message: сообщение
+    :return:
+    """
     mes = message.content
     author = message.author
 
@@ -486,4 +604,5 @@ async def on_message(message):
 
     else:
         print(f'{author} адмнистратор, поэтому пишет, что захочет')
-bot.run(Token)
+
+bot.run(Token)  #при проверке
